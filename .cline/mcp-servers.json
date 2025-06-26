@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "brand-context": {
+      "command": "node",
+      "args": ["./mcp-servers/brand-context/dist/index.js"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "content-generation": {
+      "command": "node",
+      "args": ["./mcp-servers/content-generation/dist/index.js"],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "analytics": {
+      "command": "node",
+      "args": ["./mcp-servers/analytics/dist/index.js"],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "asset-management": {
+      "command": "node",
+      "args": ["./mcp-servers/asset-management/dist/index.js"],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "workflow-orchestration": {
+      "command": "node",
+      "args": ["./mcp-servers/workflow-orchestration/dist/index.js"],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    }
+  }
+}
