@@ -29,5 +29,8 @@
   "homepage": "https://github.com/DRamaMercer/monorepo-apps-and-packages#readme",
   "devDependencies": {
     "turborepo": "^0.0.1"
+  },
+  "dependencies": {
+    "mcp-cli": "^1.0.5"
   }
 }

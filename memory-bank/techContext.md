@@ -1,4 +1,4 @@
-# Technical Context
+# Technical Context - Updated (June 2025)
 
 # Technology Stack – Multi-Brand AI Automation Suite
 

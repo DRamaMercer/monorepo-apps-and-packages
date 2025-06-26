@@ -6,7 +6,7 @@
 
 ```
 cline_docs/
-├── .cline-rules                     # Cline-specific rules for docs
+├── .clinerules                     # Cline-specific rules for docs
 ├── productContext.md                # Project goals, purpose & vision
 ├── systemPatterns.md                # Architecture patterns & conventions
 ├── techContext.md                   # Tech stack, dependencies & constraints

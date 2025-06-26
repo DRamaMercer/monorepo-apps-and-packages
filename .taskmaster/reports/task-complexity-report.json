@@ -1,0 +1,109 @@
+{
+	"meta": {
+		"generatedAt": "2025-06-25T23:34:13.347Z",
+		"tasksAnalyzed": 12,
+		"totalTasks": 12,
+		"analysisCount": 12,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Initialize Turborepo and Validate Directory Structure",
+			"complexityScore": 4,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the Turborepo initialization process into detailed steps, including configuration of shared tools and workspace setup.",
+			"reasoning": "Moderate complexity due to initial setup and configuration requirements, but well-defined steps."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Scaffold MCP Server",
+			"complexityScore": 6,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Elaborate on the MCP server setup, including detailed steps for Hono.js configuration, Supabase integration, and core API endpoint implementation.",
+			"reasoning": "Higher complexity due to integration of multiple technologies and need for robust server architecture."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Implement Cross-Brand CI/CD Pipeline",
+			"complexityScore": 8,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Detail the steps for setting up a comprehensive CI/CD pipeline, including configuration for multiple brands, environments, and automated testing.",
+			"reasoning": "High complexity due to the need for cross-brand compatibility, multiple environments, and automated processes."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Develop Brand Context Management System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Break down the brand context management system into detailed components, including database design, API development, and caching mechanisms.",
+			"reasoning": "Significant complexity due to the need for efficient context switching and caching strategies."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Build AI Agent Orchestration Layer",
+			"complexityScore": 9,
+			"recommendedSubtasks": 12,
+			"expansionPrompt": "Elaborate on the AI agent orchestration system, detailing task queue implementation, Taskmaster-ai integration, and Ollama model management.",
+			"reasoning": "High complexity due to the advanced nature of AI orchestration and integration with multiple systems."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Implement Compliance Validation Framework",
+			"complexityScore": 7,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Break down the compliance validation framework into specific components, including rules engine development and integration with content generation processes.",
+			"reasoning": "Significant complexity due to the need for accurate interpretation and implementation of ISO standards."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Develop Content Generator Service",
+			"complexityScore": 8,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Detail the content generation service components, including workflow design, AI integration, and caching mechanisms.",
+			"reasoning": "High complexity due to the integration of multiple systems and the need for efficient content generation and management."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Create Validation Service",
+			"complexityScore": 6,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Elaborate on the validation service components, including integration with the compliance framework and brand-specific rule implementation.",
+			"reasoning": "Moderate to high complexity due to the need for accurate validation across multiple criteria."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Implement Analytics Engine",
+			"complexityScore": 7,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Break down the analytics engine implementation, including data model design, collection points, and dashboard development.",
+			"reasoning": "Significant complexity due to the need for comprehensive data collection and analysis across the entire system."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Integrate Vector DB for AI Layer",
+			"complexityScore": 8,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Detail the Vector DB integration process, including client implementation, indexing mechanisms, and AI agent integration.",
+			"reasoning": "High complexity due to the advanced nature of vector databases and their integration with AI systems."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Implement Automated Traceability Matrix Generation",
+			"complexityScore": 7,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Break down the traceability matrix generation system, including parsing logic, linking mechanisms, and reporting features.",
+			"reasoning": "Significant complexity due to the need for accurate parsing and linking of requirements across the project."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Develop Next.js 14 Frontend with App Router",
+			"complexityScore": 7,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Elaborate on the Next.js 14 frontend development, including detailed component structure, state management, and API integration.",
+			"reasoning": "Significant complexity due to the use of new features in Next.js 14 and the need for integration with multiple backend services."
+		}
+	]
+}
