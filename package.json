@@ -1,0 +1,33 @@
+{
+  "name": "monorepo-apps-and-packages",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "start-all": "turbo run start-all",
+    "lint": "turbo run lint"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "mcp-servers/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DRamaMercer/monorepo-apps-and-packages.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/DRamaMercer/monorepo-apps-and-packages/issues"
+  },
+  "homepage": "https://github.com/DRamaMercer/monorepo-apps-and-packages#readme",
+  "devDependencies": {
+    "turborepo": "^0.0.1"
+  }
+}
