@@ -1,26 +1,32 @@
-import { Hono } from 'hono';
+import { Hono } from 'hono'; // Keep Hono import for type if needed, but not for app instance
 import { serve } from '@hono/node-server';
-import { ServerConfig } from '@modelcontextprotocol/runtime';
-import AnalyticsService from './mcp/server';
+// Removed: import { ServerConfig } from '@modelcontextprotocol/runtime'; // Not needed here
+import { createMCPServer } from './mcp/server'; // Changed import
 import logger from './utils/logger';
 import { environment } from './utils/environment';
 
-const app = new Hono();
+// Removed: const app = new Hono();
+// Removed: const serverConfig: ServerConfig = { ... };
+// Removed: new AnalyticsService(app, serverConfig);
 
-// MCP Server configuration
-const serverConfig: ServerConfig = {
-  port: environment.PORT,
-  host: '0.0.0.0',
-  // Add other necessary configurations like API keys, database connections, etc.
-};
+async function startAnalyticsServer() {
+  try {
+    logger.info('Starting Analytics MCP Server...');
 
-// Initialize the Analytics MCP Service
-new AnalyticsService(app, serverConfig);
+    // createMCPServer now returns the Hono app directly
+    const app = await createMCPServer();
 
-// Start the server
-serve({
-  fetch: app.fetch,
-  port: environment.PORT,
-}, (info) => {
-  logger.info(`Analytics MCP Server listening on http://${info.address}:${info.port}`);
-});
+    // Start the server
+    serve({
+      fetch: app.fetch,
+      port: environment.PORT,
+    }, (info) => {
+      logger.info(`Analytics MCP Server listening on http://${info.address}:${info.port}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start Analytics MCP Server:', error);
+    process.exit(1);
+  }
+}
+
+startAnalyticsServer();

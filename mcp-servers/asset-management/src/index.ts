@@ -1,26 +1,32 @@
-import { Hono } from 'hono';
+import { Hono } from 'hono'; // Keep Hono import for type if needed, but not for app instance
 import { serve } from '@hono/node-server';
-import { ServerConfig } from '@modelcontextprotocol/runtime';
-import AssetManagementService from './mcp/server';
+// Removed: import { ServerConfig } from '@modelcontextprotocol/runtime'; // Not needed here
+import { createMCPServer } from './mcp/server'; // Changed import
 import logger from './utils/logger';
 import { environment } from './utils/environment';
 
-const app = new Hono();
+// Removed: const app = new Hono();
+// Removed: const serverConfig: ServerConfig = { ... };
+// Removed: new AssetManagementService(app, serverConfig);
 
-// MCP Server configuration
-const serverConfig: ServerConfig = {
-  port: environment.PORT,
-  host: '0.0.0.0',
-  // Add other necessary configurations like API keys, database connections, etc.
-};
+async function startAssetManagementServer() {
+  try {
+    logger.info('Starting Asset Management MCP Server...');
 
-// Initialize the Asset Management MCP Service
-new AssetManagementService(app, serverConfig);
+    // createMCPServer now returns the Hono app directly
+    const app = await createMCPServer();
 
-// Start the server
-serve({
-  fetch: app.fetch,
-  port: environment.PORT,
-}, (info) => {
-  logger.info(`Asset Management MCP Server listening on http://${info.address}:${info.port}`);
-});
+    // Start the server
+    serve({
+      fetch: app.fetch,
+      port: environment.PORT,
+    }, (info) => {
+      logger.info(`Asset Management MCP Server listening on http://${info.address}:${info.port}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start Asset Management MCP Server:', error);
+    process.exit(1);
+  }
+}
+
+startAssetManagementServer();

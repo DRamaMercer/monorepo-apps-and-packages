@@ -5,8 +5,8 @@ import { environment } from '../utils/environment';
 import {
   MCPTool,
   MCPResource,
-  MCPService,
-  ServerConfig,
+  MCPService, // Changed from MCPServer
+  ServerConfig, // New import
 } from '@modelcontextprotocol/runtime';
 
 // Define schemas for tools
@@ -38,16 +38,14 @@ const assetResourceSchema = z.object({
 class AssetManagementService extends MCPService {
   constructor(app: Hono, config: ServerConfig) {
     super(app, config);
-    this.name = 'asset-management';
-    this.version = '1.0.0';
-    this.description = 'MCP Server for managing digital assets (upload, retrieve, delete).';
+    // Removed redundant this.name, this.version, this.description assignments
 
     this.registerTools([
       new MCPTool({
         name: 'upload_asset',
         description: 'Uploads a new digital asset.',
         inputSchema: uploadAssetToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Uploading asset:', input.fileName, input.fileType);
           // In a real scenario, this would upload to cloud storage (e.g., S3, Cloudinary)
           const assetId = `asset-${Date.now()}`;
@@ -59,7 +57,7 @@ class AssetManagementService extends MCPService {
         name: 'get_asset_info',
         description: 'Retrieves information about a specific digital asset.',
         inputSchema: getAssetInfoToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Getting asset info for ID:', input.assetId);
           // Simulate fetching asset info from a database
           return {
@@ -76,7 +74,7 @@ class AssetManagementService extends MCPService {
         name: 'delete_asset',
         description: 'Deletes a digital asset.',
         inputSchema: deleteAssetToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Deleting asset with ID:', input.assetId);
           // Simulate deleting asset from storage
           return { assetId: input.assetId, success: true };
@@ -88,8 +86,8 @@ class AssetManagementService extends MCPService {
       new MCPResource({
         name: 'asset',
         description: 'Represents a digital asset.',
-        schema: assetResourceSchema,
-        async get(uri, context) {
+        schema: assetResourceSchema, // Added schema
+        get: async (uri: string, context?: any) => { // Explicitly type uri
           logger.info('Fetching asset resource for URI:', uri);
           const assetId = uri.split('/').pop();
           if (!assetId) {
@@ -111,4 +109,20 @@ class AssetManagementService extends MCPService {
   }
 }
 
-export default AssetManagementService;
+/**
+ * Create and configure the MCP server instance
+ */
+export async function createMCPServer(): Promise<Hono> {
+  const app = new Hono();
+
+  const config: ServerConfig = {
+    name: 'asset-management',
+    description: 'MCP Server for managing digital assets (upload, retrieve, delete).',
+    version: '1.0.0',
+  };
+
+  const assetManagementService = new AssetManagementService(app, config);
+  await assetManagementService.initialize(); // Call initialize on the service instance
+
+  return app;
+}

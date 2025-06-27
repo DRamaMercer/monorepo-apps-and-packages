@@ -5,8 +5,8 @@ import { environment } from '../utils/environment';
 import {
   MCPTool,
   MCPResource,
-  MCPService,
-  ServerConfig,
+  MCPService, // Changed from MCPServer
+  ServerConfig, // New import
 } from '@modelcontextprotocol/runtime';
 
 // Define schemas for tools
@@ -33,16 +33,14 @@ const analyticsReportResourceSchema = z.object({
 class AnalyticsService extends MCPService {
   constructor(app: Hono, config: ServerConfig) {
     super(app, config);
-    this.name = 'analytics';
-    this.version = '1.0.0';
-    this.description = 'MCP Server for collecting and reporting analytics data.';
+    // Removed redundant this.name, this.version, this.description assignments
 
     this.registerTools([
       new MCPTool({
         name: 'track_event',
         description: 'Tracks a custom analytics event.',
         inputSchema: trackEventToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Tracking event:', input.eventName, input.properties);
           // In a real scenario, this would send data to an analytics platform (e.g., Mixpanel, Google Analytics)
           return { success: true, eventId: `event-${Date.now()}` };
@@ -52,7 +50,7 @@ class AnalyticsService extends MCPService {
         name: 'get_analytics_report',
         description: 'Generates and retrieves an analytics report.',
         inputSchema: getAnalyticsReportToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Generating analytics report:', input.reportType);
           // Simulate fetching/generating a report
           return {
@@ -72,8 +70,8 @@ class AnalyticsService extends MCPService {
       new MCPResource({
         name: 'report',
         description: 'Represents an analytics report.',
-        schema: analyticsReportResourceSchema,
-        async get(uri, context) {
+        schema: analyticsReportResourceSchema, // Added schema
+        get: async (uri: string, context?: any) => { // Explicitly type uri
           logger.info('Fetching analytics report resource for URI:', uri);
           const reportId = uri.split('/').pop();
           if (!reportId) {
@@ -93,4 +91,20 @@ class AnalyticsService extends MCPService {
   }
 }
 
-export default AnalyticsService;
+/**
+ * Create and configure the MCP server instance
+ */
+export async function createMCPServer(): Promise<Hono> {
+  const app = new Hono();
+
+  const config: ServerConfig = {
+    name: 'analytics',
+    description: 'MCP Server for collecting and reporting analytics data.',
+    version: '1.0.0',
+  };
+
+  const analyticsService = new AnalyticsService(app, config);
+  await analyticsService.initialize(); // Call initialize on the service instance
+
+  return app;
+}

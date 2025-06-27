@@ -139,3 +139,4 @@ While not always formally testable, consider how your rule will be interpreted:
 * **AI Interpretation (for behavioral rules):** Does it provide enough specific guidance? Are there ambiguities? Try "role-playing" as Cline and see if you can follow the instructions.
 * **Practical Application:** If it's a workflow, manually step through it. If it's a coding guideline, try applying it to a piece of code.
 * **Self-Review Against These Guidelines:** Does your new rule adhere to the principles and best practices outlined in *this very document* (`writing-effective-clinesrules.md`)?
+* **Support Continuous Learning:** Ensure rules align with and support continuous learning and knowledge capture protocols (e.g., `cline-continuous-improvement-protocol.md`, `self-improving-cline.md`).

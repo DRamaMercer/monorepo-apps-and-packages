@@ -1,0 +1,30 @@
+{
+  "name": "@mcp-servers/generic-mcp",
+  "version": "1.0.0",
+  "description": "Generic MCP server for demonstration and scaffolding.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf .turbo dist node_modules"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hono/node-server": "^1.11.2",
+    "@modelcontextprotocol/runtime": "workspace:*",
+    "hono": "^4.3.11",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  }
+}

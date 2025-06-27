@@ -1,10 +1,10 @@
 import { serve } from '@hono/node-server';
-import { Hono } from 'hono';
+import { Hono } from 'hono'; // Keep Hono import for type if needed
 import { logger } from './utils/logger';
 import { createMCPServer } from './mcp/server';
 import { loadEnvironment } from './utils/environment';
 import { initializeSupabase } from './models/supabaseClient';
-import { MCPServer } from '@modelcontextprotocol/runtime';
+// Removed: import { MCPServer } from '@modelcontextprotocol/runtime'; // No longer needed here
 
 // Load environment variables
 loadEnvironment();
@@ -19,41 +19,25 @@ async function startServer() {
     initializeSupabase();
     logger.info('Supabase client initialized');
     
-    // Create the MCP server instance
-    const mcpServer: MCPServer = await createMCPServer();
-    logger.info('MCP Server created');
+    // Create the Hono app instance for the MCP server
+    // createMCPServer now returns the Hono app directly
+    const app = await createMCPServer();
+    logger.info('MCP Server Hono app created');
     
-    // Create the HTTP server
-    const app = new Hono();
-    
-    // Health check endpoint
-    app.get('/health', (c) => {
-      return c.json({
-        status: 'healthy',
-        version: process.env.npm_package_version || '0.1.0',
-        name: 'Brand Context MCP'
-      });
-    });
-    
-    // Mount the MCP server routes
-    app.use('/mcp/*', async (c) => {
-      const response = await mcpServer.handleHttpRequest(c.req.raw);
-      return new Response(response.body, {
-        status: response.status,
-        headers: response.headers
-      });
-    });
+    // Health check endpoint (already defined in the Hono app returned by createMCPServer)
+    // No need to redefine here if it's already part of the returned app.
+    // Assuming createMCPServer handles all MCP-specific routes including /mcp/*
     
     // Start the server
     serve({
-      fetch: app.fetch,
+      fetch: app.fetch, // Use the fetch handler from the created Hono app
       port: PORT
     });
     
     logger.info(`Server listening on port ${PORT}`);
     
-    // Initialize event listeners and connections
-    await mcpServer.initialize();
+    // The initialize method is now called internally within the MCPService constructor
+    // No need to call mcpServer.initialize() here anymore
     logger.info('MCP Server initialized and ready to handle requests');
     
   } catch (error) {

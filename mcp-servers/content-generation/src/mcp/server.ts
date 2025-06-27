@@ -5,8 +5,8 @@ import { environment } from '../utils/environment';
 import {
   MCPTool,
   MCPResource,
-  MCPService,
-  ServerConfig,
+  MCPService, // Changed from MCPServer
+  ServerConfig, // New import
 } from '@modelcontextprotocol/runtime';
 
 // Define schemas for tools
@@ -33,16 +33,14 @@ const contentResourceSchema = z.object({
 class ContentGenerationService extends MCPService {
   constructor(app: Hono, config: ServerConfig) {
     super(app, config);
-    this.name = 'content-generation';
-    this.version = '1.0.0';
-    this.description = 'MCP Server for AI-powered content generation.';
+    // Removed redundant this.name, this.version, this.description assignments
 
     this.registerTools([
       new MCPTool({
         name: 'generate_content',
         description: 'Generates content based on a prompt using an AI model.',
         inputSchema: generateContentToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Generating content:', input.prompt);
           // Simulate AI content generation
           const contentId = 'gen-' + Math.random().toString(36).substring(2, 11);
@@ -63,7 +61,7 @@ class ContentGenerationService extends MCPService {
         name: 'get_content_status',
         description: 'Retrieves the status of a previously generated content request.',
         inputSchema: getContentStatusToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Getting content status for ID:', input.contentId);
           // Simulate fetching status from a database
           return {
@@ -79,10 +77,9 @@ class ContentGenerationService extends MCPService {
       new MCPResource({
         name: 'content',
         description: 'Represents generated content.',
-        schema: contentResourceSchema,
-        async get(uri, context) {
+        schema: contentResourceSchema, // Added schema
+        get: async (uri: string, context?: any) => { // Explicitly type uri
           logger.info('Fetching content resource for URI:', uri);
-          // In a real scenario, fetch from a database using the URI/ID
           const contentId = uri.split('/').pop();
           if (!contentId) {
             throw new Error('Invalid content URI');
@@ -104,4 +101,20 @@ class ContentGenerationService extends MCPService {
   }
 }
 
-export default ContentGenerationService;
+/**
+ * Create and configure the MCP server instance
+ */
+export async function createMCPServer(): Promise<Hono> {
+  const app = new Hono();
+
+  const config: ServerConfig = {
+    name: 'content-generation',
+    description: 'MCP Server for AI-powered content generation.',
+    version: '1.0.0',
+  };
+
+  const contentGenerationService = new ContentGenerationService(app, config);
+  await contentGenerationService.initialize(); // Call initialize on the service instance
+
+  return app;
+}

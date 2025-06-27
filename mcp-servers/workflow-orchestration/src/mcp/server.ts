@@ -5,8 +5,8 @@ import { environment } from '../utils/environment';
 import {
   MCPTool,
   MCPResource,
-  MCPService,
-  ServerConfig,
+  MCPService, // Changed from MCPServer
+  ServerConfig, // New import
 } from '@modelcontextprotocol/runtime';
 
 // Define schemas for tools
@@ -36,16 +36,14 @@ const workflowResourceSchema = z.object({
 class WorkflowOrchestrationService extends MCPService {
   constructor(app: Hono, config: ServerConfig) {
     super(app, config);
-    this.name = 'workflow-orchestration';
-    this.version = '1.0.0';
-    this.description = 'MCP Server for orchestrating and managing complex workflows.';
+    // Removed redundant this.name, this.version, this.description assignments
 
     this.registerTools([
       new MCPTool({
         name: 'start_workflow',
         description: 'Starts a new workflow instance.',
         inputSchema: startWorkflowToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Starting workflow:', input.workflowName, input.inputData);
           // In a real scenario, this would trigger a workflow engine (e.g., Temporal, Cadence, AWS Step Functions)
           const workflowId = `workflow-${Date.now()}`;
@@ -56,7 +54,7 @@ class WorkflowOrchestrationService extends MCPService {
         name: 'get_workflow_status',
         description: 'Retrieves the current status of a workflow instance.',
         inputSchema: getWorkflowStatusToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Getting status for workflow ID:', input.workflowId);
           // Simulate fetching workflow status
           return {
@@ -71,7 +69,7 @@ class WorkflowOrchestrationService extends MCPService {
         name: 'stop_workflow',
         description: 'Stops a running workflow instance.',
         inputSchema: stopWorkflowToolSchema,
-        async func(input, context) {
+        func: async (input: any, context?: any) => { // Explicitly type input
           logger.info('Stopping workflow ID:', input.workflowId);
           // Simulate stopping a workflow
           return { workflowId: input.workflowId, status: 'stopped', success: true };
@@ -83,8 +81,8 @@ class WorkflowOrchestrationService extends MCPService {
       new MCPResource({
         name: 'workflow',
         description: 'Represents a workflow instance.',
-        schema: workflowResourceSchema,
-        async get(uri, context) {
+        schema: workflowResourceSchema, // Added schema
+        get: async (uri: string, context?: any) => { // Explicitly type uri
           logger.info('Fetching workflow resource for URI:', uri);
           const workflowId = uri.split('/').pop();
           if (!workflowId) {
@@ -106,4 +104,20 @@ class WorkflowOrchestrationService extends MCPService {
   }
 }
 
-export default WorkflowOrchestrationService;
+/**
+ * Create and configure the MCP server instance
+ */
+export async function createMCPServer(): Promise<Hono> {
+  const app = new Hono();
+
+  const config: ServerConfig = {
+    name: 'workflow-orchestration',
+    description: 'MCP Server for orchestrating and managing complex workflows.',
+    version: '0.1.0',
+  };
+
+  const workflowOrchestrationService = new WorkflowOrchestrationService(app, config);
+  await workflowOrchestrationService.initialize(); // Call initialize on the service instance
+
+  return app;
+}
