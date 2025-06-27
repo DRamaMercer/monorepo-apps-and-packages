@@ -28,13 +28,14 @@
   },
   "homepage": "https://github.com/DRamaMercer/monorepo-apps-and-packages#readme",
   "devDependencies": {
-    "turbo": "^1.13.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
     "eslint": "^8.0.0",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "turbo": "^1.13.0",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
+    "create-turbo": "^2.5.4",
     "mcp-cli": "^1.0.5"
   }
 }
