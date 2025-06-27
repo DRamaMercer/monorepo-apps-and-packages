@@ -1,5 +1,8 @@
 import { logger } from '../utils/logger';
 import { getOptionalEnv } from '../utils/environment';
+import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'node-fetch';
 
 /**
  * Agent capability types
@@ -104,6 +107,20 @@ export interface AgentExecutionResult {
 }
 
 /**
+ * Type definition for Ollama chat API response
+ */
+interface OllamaChatResponse {
+  message?: {
+    content: string;
+  };
+  usage?: {
+    prompt_eval_count: number;
+    eval_count: number;
+    total_eval_count: number;
+  };
+}
+
+/**
  * Agent Manager class for managing AI agents
  */
 export class AgentManager {
@@ -111,6 +128,10 @@ export class AgentManager {
   private capabilityIndex: Map<AgentCapability, Set<string>> = new Map();
   private typeIndex: Map<AgentType, Set<string>> = new Map();
   private modelProviderIndex: Map<ModelProvider, Set<string>> = new Map();
+
+  private openaiClient: OpenAI | undefined;
+  private anthropicClient: Anthropic | undefined;
+  // private ollamaClient: any; // Placeholder for Ollama client
 
   constructor() {
     logger.info('Agent Manager created');
@@ -129,6 +150,30 @@ export class AgentManager {
     Object.values(ModelProvider).forEach(provider => {
       this.modelProviderIndex.set(provider, new Set<string>());
     });
+
+    // Initialize OpenAI client
+    const openaiApiKey = getOptionalEnv('OPENAI_API_KEY');
+    if (openaiApiKey) {
+      this.openaiClient = new OpenAI({ apiKey: openaiApiKey });
+    } else {
+      logger.warn('OPENAI_API_KEY not found. OpenAI agent execution will be simulated.');
+    }
+
+    // Initialize Anthropic client
+    const anthropicApiKey = getOptionalEnv('ANTHROPIC_API_KEY');
+    if (anthropicApiKey) {
+      this.anthropicClient = new Anthropic({ apiKey: anthropicApiKey });
+    } else {
+      logger.warn('ANTHROPIC_API_KEY not found. Anthropic agent execution will be simulated.');
+    }
+
+    // Initialize Ollama client (placeholder)
+    // const ollamaBaseUrl = getOptionalEnv('OLLAMA_BASE_URL', 'http://localhost:11434');
+    // if (ollamaBaseUrl) {
+    //   this.ollamaClient = new Ollama({ baseUrl: ollamaBaseUrl }); // Assuming an Ollama SDK exists
+    // } else {
+    //   logger.warn('OLLAMA_BASE_URL not found. Ollama agent execution will be simulated.');
+    // }
   }
 
   /**
@@ -237,16 +282,23 @@ export class AgentManager {
       
       switch (agent.modelProvider) {
         case ModelProvider.OPENAI:
-          result = await this.simulateOpenAIExecution(agent, request);
+          result = await this.executeOpenAI(agent, request);
           break;
         case ModelProvider.ANTHROPIC:
-          result = await this.simulateAnthropicExecution(agent, request);
+          result = await this.executeAnthropic(agent, request);
           break;
         case ModelProvider.OLLAMA:
-          result = await this.simulateOllamaExecution(agent, request);
+          result = await this.executeOllama(agent, request);
+          break;
+        case ModelProvider.CUSTOM:
+          result = await this.executeCustom(agent, request);
           break;
         default:
-          result = await this.simulateCustomExecution(agent, request);
+          result = {
+            agentId: agent.id,
+            success: false,
+            error: `Unsupported model provider: ${agent.modelProvider}`
+          };
       }
       
       // Calculate execution duration
@@ -272,101 +324,196 @@ export class AgentManager {
   }
 
   /**
-   * Simulate OpenAI execution (to be replaced with actual implementation)
+   * Execute with OpenAI API
    */
-  private async simulateOpenAIExecution(
+  private async executeOpenAI(
     agent: Agent,
     request: AgentExecutionRequest
   ): Promise<AgentExecutionResult> {
-    // Simulate API latency
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return {
-      agentId: agent.id,
-      success: true,
-      output: `[${agent.name}] Processed: ${request.prompt}`,
-      usage: {
-        promptTokens: request.prompt.length,
-        completionTokens: 100,
-        totalTokens: request.prompt.length + 100
-      },
-      metadata: {
+    if (!this.openaiClient) {
+      return {
+        agentId: agent.id,
+        success: false,
+        error: 'OpenAI client not initialized. Missing API key.'
+      };
+    }
+
+    try {
+      const completion = await this.openaiClient.chat.completions.create({
+        messages: [
+          { role: 'system', content: request.systemInstructions || 'You are a helpful AI agent.' },
+          { role: 'user', content: request.prompt }
+        ],
         model: agent.modelName,
-        brand: request.brandContext
-      }
-    };
+        temperature: request.temperature || 0.7,
+        max_tokens: request.maxTokens || 1024,
+        // tools: request.tools // Enable if tools are supported by the agent and model
+      });
+
+      const output = completion.choices[0]?.message?.content || '';
+      const usage = completion.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+
+      return {
+        agentId: agent.id,
+        success: true,
+        output,
+        usage: {
+          promptTokens: usage.prompt_tokens,
+          completionTokens: usage.completion_tokens,
+          totalTokens: usage.total_tokens
+        },
+        metadata: {
+          model: agent.modelName,
+          brand: request.brandContext,
+          finishReason: completion.choices[0]?.finish_reason
+        }
+      };
+    } catch (error) {
+      logger.error(`OpenAI execution error for agent ${agent.id}:`, error);
+      return {
+        agentId: agent.id,
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
   }
 
   /**
-   * Simulate Anthropic execution (to be replaced with actual implementation)
+   * Execute with Anthropic API
    */
-  private async simulateAnthropicExecution(
+  private async executeAnthropic(
     agent: Agent,
     request: AgentExecutionRequest
   ): Promise<AgentExecutionResult> {
-    // Simulate API latency
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    
-    return {
-      agentId: agent.id,
-      success: true,
-      output: `[${agent.name}] Processed with Claude: ${request.prompt}`,
-      usage: {
-        promptTokens: request.prompt.length,
-        completionTokens: 120,
-        totalTokens: request.prompt.length + 120
-      },
-      metadata: {
+    if (!this.anthropicClient) {
+      return {
+        agentId: agent.id,
+        success: false,
+        error: 'Anthropic client not initialized. Missing API key.'
+      };
+    }
+
+    try {
+      const response = await this.anthropicClient.messages.create({
         model: agent.modelName,
-        brand: request.brandContext
-      }
-    };
+        max_tokens: request.maxTokens || 1024,
+        temperature: request.temperature || 0.7,
+        system: request.systemInstructions || 'You are a helpful AI agent.',
+        messages: [
+          { role: 'user', content: request.prompt }
+        ]
+      });
+
+      const output = response.content.map(block => block.text).join('\n');
+      const usage = response.usage;
+
+      return {
+        agentId: agent.id,
+        success: true,
+        output,
+        usage: {
+          promptTokens: usage.input_tokens,
+          completionTokens: usage.output_tokens,
+          totalTokens: usage.input_tokens + usage.output_tokens
+        },
+        metadata: {
+          model: agent.modelName,
+          brand: request.brandContext,
+          stopReason: response.stop_reason
+        }
+      };
+    } catch (error) {
+      logger.error(`Anthropic execution error for agent ${agent.id}:`, error);
+      return {
+        agentId: agent.id,
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
   }
 
   /**
-   * Simulate Ollama execution (to be replaced with actual implementation)
+   * Execute with Ollama API
    */
-  private async simulateOllamaExecution(
+  private async executeOllama(
     agent: Agent,
     request: AgentExecutionRequest
   ): Promise<AgentExecutionResult> {
-    // Simulate API latency
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    return {
-      agentId: agent.id,
-      success: true,
-      output: `[${agent.name}] Processed with Ollama: ${request.prompt}`,
-      usage: {
-        promptTokens: request.prompt.length,
-        completionTokens: 80,
-        totalTokens: request.prompt.length + 80
-      },
-      metadata: {
-        model: agent.modelName,
-        brand: request.brandContext
+    const ollamaBaseUrl = getOptionalEnv('OLLAMA_BASE_URL', 'http://localhost:11434');
+    try {
+      const response = await fetch(`${ollamaBaseUrl}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: agent.modelName,
+          messages: [
+            { role: 'system', content: request.systemInstructions || 'You are a helpful AI agent.' },
+            { role: 'user', content: request.prompt }
+          ],
+          options: {
+            temperature: request.temperature || 0.7,
+            num_ctx: request.maxTokens || 1024, // Ollama uses num_ctx for context window size, which is similar to max_tokens
+          },
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Ollama API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
-    };
+
+      const data: OllamaChatResponse = await response.json();
+      const output = data.message?.content || '';
+      const usage = data.usage || { prompt_eval_count: 0, eval_count: 0, total_eval_count: 0 };
+
+      return {
+        agentId: agent.id,
+        success: true,
+        output,
+        usage: {
+          promptTokens: usage.prompt_eval_count, // Ollama uses prompt_eval_count for prompt tokens
+          completionTokens: usage.eval_count,    // Ollama uses eval_count for completion tokens
+          totalTokens: usage.total_eval_count     // Ollama uses total_eval_count for total tokens
+        },
+        metadata: {
+          model: agent.modelName,
+          brand: request.brandContext,
+        }
+      };
+    } catch (error) {
+      logger.error(`Ollama execution error for agent ${agent.id}:`, error);
+      return {
+        agentId: agent.id,
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
   }
 
   /**
-   * Simulate custom execution (to be replaced with actual implementation)
+   * Execute with Custom Model (placeholder for generic API interaction)
    */
-  private async simulateCustomExecution(
+  private async executeCustom(
     agent: Agent,
     request: AgentExecutionRequest
   ): Promise<AgentExecutionResult> {
-    // Simulate API latency
-    await new Promise(resolve => setTimeout(resolve, 500));
+    logger.warn(`Custom model execution for agent ${agent.id} is being handled generically.`);
+    // This could be extended to handle various custom API endpoints or local models
+    // For now, it acts as a placeholder for future custom integrations.
+    // You might integrate with a dynamic loader or a configuration-driven API client here.
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API latency
     
     return {
       agentId: agent.id,
       success: true,
-      output: `[${agent.name}] Processed with custom model: ${request.prompt}`,
+      output: `[Custom Model] Processed: ${request.prompt} with model ${agent.modelName}`,
       usage: {
         promptTokens: request.prompt.length,
-        completionTokens: 60,
-        totalTokens: request.prompt.length + 60
+        completionTokens: Math.floor(request.prompt.length / 5), // Arbitrary
+        totalTokens: request.prompt.length + Math.floor(request.prompt.length / 5)
       },
       metadata: {
         model: agent.modelName,
