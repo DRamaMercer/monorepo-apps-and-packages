@@ -20,11 +20,13 @@ export function isValidBrandId(brandId: string): boolean {
   return validBrands.includes(brandId)
 }
 
+import { v4 as uuidv4 } from 'uuid';
+
 /**
- * Generates a unique ID
+ * Generates a unique ID using UUID v4.
  */
 export function generateId(): string {
-  return Math.random().toString(36).substr(2, 9)
+  return uuidv4();
 }
 
 /**
