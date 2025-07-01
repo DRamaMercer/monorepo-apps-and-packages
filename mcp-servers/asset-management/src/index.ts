@@ -2,8 +2,10 @@ import { Hono } from 'hono'; // Keep Hono import for type if needed, but not for
 import { serve } from '@hono/node-server';
 // Removed: import { ServerConfig } from '@modelcontextprotocol/runtime'; // Not needed here
 import { createMCPServer } from './mcp/server'; // Changed import
-import logger from './utils/logger';
+import { createLogger, DEFAULT_PORTS } from '@monorepo/core';
 import { environment } from './utils/environment';
+
+const logger = createLogger({ serviceName: 'asset-management-mcp' });
 
 // Removed: const app = new Hono();
 // Removed: const serverConfig: ServerConfig = { ... };

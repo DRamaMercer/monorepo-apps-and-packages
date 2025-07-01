@@ -1,6 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { logger } from '../utils/logger';
+import { createLogger } from '@monorepo/core';
 import { BrandContext } from './brandContext';
+
+const logger = createLogger({ serviceName: 'brand-context-mcp', defaultMeta: { component: 'supabaseClient' } });
 
 // Supabase client singleton
 let supabaseClient: SupabaseClient | null = null;

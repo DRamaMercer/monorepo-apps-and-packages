@@ -1,16 +1,20 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
-import { logger } from './utils/logger';
+import { createLogger, DEFAULT_PORTS } from '@monorepo/core';
 import { createMCPServer } from './mcp/server';
 import { initializeTaskQueue } from './queue/taskQueue';
 import { initializeAgentManager } from './agents/agentManager';
 import { loadEnvironment } from './utils/environment';
 // Removed: import { MCPServer } from '@modelcontextprotocol/runtime'; // No longer needed here
 
+const logger = createLogger({ serviceName: 'agent-orchestration-mcp' });
+
 // Load environment variables
 loadEnvironment();
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3020;
+// TODO: Add AGENT_ORCHESTRATION_MCP to DEFAULT_PORTS in @monorepo/core if this service is standard
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : (DEFAULT_PORTS as any).AGENT_ORCHESTRATION_MCP || 3020;
+
 
 async function startServer() {
   try {

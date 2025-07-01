@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import logger from '../utils/logger';
+import { createLogger } from '@monorepo/core';
 import { environment } from '../utils/environment';
 import {
+
+const logger = createLogger({ serviceName: 'asset-management-mcp', defaultMeta: { component: 'mcpServer' } });
   MCPTool,
   MCPResource,
   MCPService, // Changed from MCPServer

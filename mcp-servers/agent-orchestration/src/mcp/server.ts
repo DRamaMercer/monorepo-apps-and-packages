@@ -5,7 +5,7 @@ import {
   MCPTool, 
   MCPResource 
 } from '@modelcontextprotocol/runtime';
-import { logger } from '../utils/logger';
+import { createLogger } from '@monorepo/core';
 import { TaskQueueSystem, TaskType, TaskPriority } from '../queue/taskQueue';
 import { 
   AgentManager, 
@@ -14,6 +14,8 @@ import {
   ModelProvider 
 } from '../agents/agentManager';
 import { z } from 'zod';
+
+const logger = createLogger({ serviceName: 'agent-orchestration-mcp', defaultMeta: { component: 'mcpServer' } });
 
 interface MCPServerDependencies {
   taskQueueSystem: TaskQueueSystem;

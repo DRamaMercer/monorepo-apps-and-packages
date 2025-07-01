@@ -38,4 +38,6 @@ export const DEFAULT_PORTS = {
   ANALYTICS_MCP: 3004,
   ASSET_MANAGEMENT_MCP: 3005,
   WORKFLOW_ORCHESTRATION_MCP: 3006,
+  AGENT_ORCHESTRATION_MCP: 3020, // Default port from its index.ts
+  GENERIC_MCP: 3007,             // Default port from its index.ts
 } as const

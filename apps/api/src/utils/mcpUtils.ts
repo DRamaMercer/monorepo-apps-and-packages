@@ -1,4 +1,6 @@
-import { logger } from './logger'; // Assuming a logger exists or will be created in apps/api/src/utils
+import { createLogger } from '@monorepo/core';
+
+const logger = createLogger({ serviceName: 'api-mcp-client' });
 
 export interface McpToolResponse<T = any> {
   success: boolean;

@@ -5,9 +5,11 @@ import {
   MCPTool, 
   MCPResource 
 } from '@modelcontextprotocol/runtime';
-import { logger } from '../utils/logger';
+import { createLogger } from '@monorepo/core';
 import { BrandContext, BrandContextSchema, createBrandContext, updateBrandContext } from '../models/brandContext';
 import { BrandContextDB } from '../models/supabaseClient';
+
+const logger = createLogger({ serviceName: 'brand-context-mcp', defaultMeta: { component: 'mcpServer' } });
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 

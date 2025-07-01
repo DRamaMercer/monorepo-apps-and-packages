@@ -1,5 +1,7 @@
 import { z } from 'zod';
-import { logger } from '../utils/logger';
+import { createLogger } from '@monorepo/core';
+
+const logger = createLogger({ serviceName: 'brand-context-mcp', defaultMeta: { component: 'brandContextModel' } });
 
 /**
  * Brand Context Model - defines the schema for brand configuration

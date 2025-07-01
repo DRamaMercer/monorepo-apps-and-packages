@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import { join } from 'path';
-import { logger } from './logger';
+import { createLogger } from '@monorepo/core';
+
+const logger = createLogger({ serviceName: 'brand-context-mcp', defaultMeta: { component: 'environment-loader' } });
 
 /**
  * Load environment variables from .env files

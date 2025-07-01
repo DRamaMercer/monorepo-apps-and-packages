@@ -1,6 +1,8 @@
-import { logger } from '../utils/logger';
+import { createLogger } from '@monorepo/core';
 import { getOptionalEnv } from '../utils/environment';
 import OpenAI from 'openai';
+
+const logger = createLogger({ serviceName: 'agent-orchestration-mcp', defaultMeta: { component: 'agentManager' } });
 import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
 

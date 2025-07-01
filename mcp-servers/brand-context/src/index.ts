@@ -1,11 +1,12 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono'; // Keep Hono import for type if needed
-import { logger } from './utils/logger';
+import { createLogger, DEFAULT_PORTS } from '@monorepo/core';
 import { createMCPServer } from './mcp/server';
 import { loadEnvironment } from './utils/environment';
-import { DEFAULT_PORTS } from '@monorepo/core';
 import { initializeSupabase } from './models/supabaseClient';
 // Removed: import { MCPServer } from '@modelcontextprotocol/runtime'; // No longer needed here
+
+const logger = createLogger({ serviceName: 'brand-context-mcp' });
 
 // Load environment variables
 loadEnvironment();

@@ -3,10 +3,11 @@ import { serve } from '@hono/node-server'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger' // Renamed to avoid conflict
 import { callMcpTool } from './utils/mcpUtils'
-import { logger as appLogger } from './utils/logger' // Application specific logger
+// Application specific logger is now from @monorepo/core
+import { createLogger, DEFAULT_PORTS } from '@monorepo/core';
 import type { Brand, BrandStatus } from '@monorepo/types'; // Assuming Brand type is needed
-import { DEFAULT_PORTS } from '@monorepo/core';
 
+const appLogger = createLogger({ serviceName: 'api-service' });
 const app = new Hono()
 
 // Middleware

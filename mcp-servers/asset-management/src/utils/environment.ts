@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
-import logger from './logger';
+import { createLogger } from '@monorepo/core';
+
+const logger = createLogger({ serviceName: 'asset-management-mcp', defaultMeta: { component: 'environment-loader' } });
 
 dotenv.config();
 
