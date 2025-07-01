@@ -3,13 +3,14 @@ import { Hono } from 'hono'; // Keep Hono import for type if needed
 import { logger } from './utils/logger';
 import { createMCPServer } from './mcp/server';
 import { loadEnvironment } from './utils/environment';
+import { DEFAULT_PORTS } from '@monorepo/core';
 import { initializeSupabase } from './models/supabaseClient';
 // Removed: import { MCPServer } from '@modelcontextprotocol/runtime'; // No longer needed here
 
 // Load environment variables
 loadEnvironment();
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3021;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORTS.BRAND_CONTEXT_MCP;
 
 async function startServer() {
   try {

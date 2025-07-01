@@ -29,10 +29,21 @@ export function loadEnvironment(): void {
     const missing = requiredVars.filter(varName => !process.env[varName]);
     
     if (missing.length > 0) {
-      logger.warn(`Missing required environment variables: ${missing.join(', ')}`);
+      const errorMessage = `Missing critical environment variables: ${missing.join(', ')}. Server cannot start.`;
+      logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
     
-  } catch (error) {
-    logger.error('Error loading environment variables:', error);
+    logger.info('All required environment variables are present.');
+
+  } catch (error: any) {
+    // Log the original error if it's from dotenv or path resolution,
+    // otherwise, it might be the error we just threw.
+    if (error.message.startsWith('Missing critical environment variables')) {
+        throw error; // Re-throw the specific error about missing vars
+    }
+    const loadErrorMessage = `Failed to load or validate environment variables: ${error.message}`;
+    logger.error(loadErrorMessage, error);
+    throw new Error(loadErrorMessage);
   }
 }

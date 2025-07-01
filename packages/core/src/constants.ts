@@ -6,12 +6,14 @@ export const BRANDS = {
   SAITHAVYS: 'saithavys',
   PARTLY_OFFICE: 'partly-office',
   G_PRISMO: 'g-prismo',
+  DEFAULT: 'default', // Added default brand
 } as const
 
 export const BRAND_NAMES = {
   [BRANDS.SAITHAVYS]: 'SaithavyS',
   [BRANDS.PARTLY_OFFICE]: 'Partly Office',
   [BRANDS.G_PRISMO]: 'G Prismo',
+  [BRANDS.DEFAULT]: 'Default', // Added default brand name
 } as const
 
 export const MCP_SERVERS = {

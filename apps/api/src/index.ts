@@ -5,6 +5,7 @@ import { logger as honoLogger } from 'hono/logger' // Renamed to avoid conflict
 import { callMcpTool } from './utils/mcpUtils'
 import { logger as appLogger } from './utils/logger' // Application specific logger
 import type { Brand, BrandStatus } from '@monorepo/types'; // Assuming Brand type is needed
+import { DEFAULT_PORTS } from '@monorepo/core';
 
 const app = new Hono()
 
@@ -197,7 +198,7 @@ app.get('/api/mcp/status', async (c) => {
   }
 })
 
-const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
+const port = process.env.PORT ? parseInt(process.env.PORT) : DEFAULT_PORTS.API;
 
 console.log(`🚀 Multi-Brand AI Agent API Server starting on port ${port}`)
 
