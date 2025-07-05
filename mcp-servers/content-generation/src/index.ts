@@ -2,8 +2,10 @@ import { Hono } from 'hono'; // Keep Hono import for type if needed, but not for
 import { serve } from '@hono/node-server';
 // Removed: import { ServerConfig } from '@modelcontextprotocol/runtime'; // Not needed here
 import { createMCPServer } from './mcp/server'; // Changed import
-import logger from './utils/logger';
+import { createLogger, DEFAULT_PORTS } from '@monorepo/core';
 import { environment } from './utils/environment';
+
+const logger = createLogger({ serviceName: 'content-generation-mcp' });
 
 // Removed: const app = new Hono();
 // Removed: const serverConfig: ServerConfig = { ... };
@@ -13,8 +15,8 @@ async function startContentGenerationServer() {
   try {
     logger.info('Starting Content Generation MCP Server...');
 
-    // createMCPServer now returns the Hono app directly
-    const app = await createMCPServer();
+    // Pass the main service logger to createMCPServer
+    const app = await createMCPServer(logger);
 
     // Start the server
     serve({

@@ -1,7 +1,9 @@
 import { Queue, Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { logger } from '../utils/logger';
+import { createLogger } from '@monorepo/core';
 import { getOptionalEnv } from '../utils/environment';
+
+const logger = createLogger({ serviceName: 'agent-orchestration-mcp', defaultMeta: { component: 'taskQueue' } });
 
 // Task types supported by the orchestration layer
 export enum TaskType {

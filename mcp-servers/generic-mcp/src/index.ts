@@ -2,6 +2,9 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { MCPService, MCPTool, MCPResource, ServerConfig } from '@modelcontextprotocol/runtime';
 import { z } from 'zod';
+import { createLogger, DEFAULT_PORTS } from '@monorepo/core';
+
+const logger = createLogger({ serviceName: 'generic-mcp' });
 
 // Define the schema for the tool's input
 const exampleToolInputSchema = z.object({
@@ -18,9 +21,13 @@ const exampleResourceOutputSchema = z.object({
   data: z.string().describe('Some example data.'),
 });
 
-class GenericMCPService extends MCPService {
-  constructor(app: Hono, config: ServerConfig) {
+// Export for testing
+export class GenericMCPService extends MCPService {
+  private readonly logger: ReturnType<typeof createLogger>;
+
+  constructor(app: Hono, config: ServerConfig, loggerInstance: ReturnType<typeof createLogger>) {
     super(app, config);
+    this.logger = loggerInstance;
 
     // Define tools
     const greetUserTool = new MCPTool({
@@ -44,12 +51,12 @@ class GenericMCPService extends MCPService {
   }
 
   async greetUser(input: z.infer<typeof exampleToolInputSchema>): Promise<z.infer<typeof exampleToolOutputSchema>> {
-    // console.log(`Received greet_user request for: ${input.name}`); // Removed this.logger
+    this.logger.info(`Received greet_user request for: ${input.name}`);
     return { greeting: `Hello, ${input.name} from Generic MCP Server!` };
   }
 
   async getExampleData(): Promise<z.infer<typeof exampleResourceOutputSchema>> {
-    // console.log('Received get_example_data request'); // Removed this.logger
+    this.logger.info('Received get_example_data request');
     return { data: 'This is some example data from Generic MCP Server.' };
   }
 }
@@ -60,7 +67,8 @@ const serviceConfig: ServerConfig = {
   version: '1.0.0',
   description: 'Generic MCP server for demonstration and scaffolding.',
 };
-const service = new GenericMCPService(app, serviceConfig); // Pass app and config to constructor
+// Pass the module-scoped logger to the service instance
+const service = new GenericMCPService(app, serviceConfig, logger);
 
 // The MCPService now handles its own routes internally
 // app.post('/mcp', async (c) => { // This block is no longer needed as MCPService handles /mcp/tool and /mcp/resource routes
@@ -69,10 +77,12 @@ const service = new GenericMCPService(app, serviceConfig); // Pass app and confi
 //   return c.json(response);
 // });
 
-const port = 3000; // You can make this configurable
+// TODO: Add GENERIC_MCP to DEFAULT_PORTS in @monorepo/core if this service is standard
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : (DEFAULT_PORTS as any).GENERIC_MCP || 3007;
+
 serve({
   fetch: app.fetch,
   port,
 }, () => {
-  console.log(`Generic MCP Server running on http://localhost:${port}`);
+  logger.info(`Generic MCP Server running on http://localhost:${port}`);
 });

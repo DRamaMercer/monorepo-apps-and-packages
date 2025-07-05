@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
-import { logger } from './logger';
+import { createLogger } from '@monorepo/core';
 import path from 'path';
 import fs from 'fs';
+
+const logger = createLogger({ serviceName: 'agent-orchestration-mcp', defaultMeta: { component: 'environment-loader' } });
 
 /**
  * Loads environment variables from .env file

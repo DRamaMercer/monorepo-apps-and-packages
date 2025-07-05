@@ -1,4 +1,5 @@
-import { Hono } from 'hono'; // Assuming Hono is the web framework for MCP servers
+import { Hono, Context } from 'hono'; // Assuming Hono is the web framework for MCP servers
+import { z, ZodError, ZodTypeAny } from 'zod'; // Import Zod for validation
 
 // 1. ServerConfig Interface
 export interface ServerConfig {
@@ -11,19 +12,19 @@ export interface ServerConfig {
 export class MCPTool {
   public name: string;
   public description: string;
-  public inputSchema: any; // Using 'any' for simplicity, will be Zod schema
-  public handler: (input: any, context?: any) => Promise<any>;
+  public inputSchema: ZodTypeAny; // Input schema for the tool
+  public handler: (input: any, hContext?: Context) => Promise<any>; // hContext is Hono's context
 
   constructor(options: {
     name: string;
     description: string;
-    inputSchema: any;
-    func: (input: any, context?: any) => Promise<any>;
+    inputSchema: ZodTypeAny; // Expect a Zod schema
+    func: (input: any, hContext?: Context) => Promise<any>;
   }) {
     this.name = options.name;
     this.description = options.description;
     this.inputSchema = options.inputSchema;
-    this.handler = options.func; // Renamed func to handler for consistency
+    this.handler = options.func;
   }
 }
 
@@ -31,19 +32,19 @@ export class MCPTool {
 export class MCPResource {
   public name: string;
   public description: string;
-  public schema: any; // Using 'any' for simplicity, will be Zod schema
-  public handler: (uri: string, context?: any) => Promise<any>; // For 'get' operation
+  public schema: ZodTypeAny; // Schema describing the output of the resource
+  public handler: (uri: string, hContext?: Context) => Promise<any>; // For 'get' operation
 
   constructor(options: {
     name: string;
     description: string;
-    schema: any;
-    get: (uri: string, context?: any) => Promise<any>;
+    schema: ZodTypeAny; // Expect a Zod schema for the resource's output
+    get: (uri: string, hContext?: Context) => Promise<any>;
   }) {
     this.name = options.name;
     this.description = options.description;
     this.schema = options.schema;
-    this.handler = options.get; // Renamed get to handler for consistency
+    this.handler = options.get;
   }
 }
 
@@ -82,12 +83,33 @@ export abstract class MCPService {
         return c.json({ error: `Tool '${toolName}' not found` }, 404);
       }
       try {
-        const input = await c.req.json();
-        // Here, you might add Zod validation: tool.inputSchema.parse(input);
-        const result = await tool.handler(input);
+        const rawInput = await c.req.json();
+        const parsedInput = tool.inputSchema.safeParse(rawInput);
+
+        if (!parsedInput.success) {
+          // Refine error reporting to include ZodError details
+          const zodError = parsedInput.error as ZodError;
+          const errorDetails = zodError.errors.map(err => ({
+            path: err.path.join('.'),
+            message: err.message,
+          }));
+          return c.json({ error: 'Input validation failed', details: errorDetails }, 400);
+        }
+
+        // Pass Hono's context `c` to the handler if it needs it
+        const result = await tool.handler(parsedInput.data, c);
         return c.json(result);
       } catch (error: any) {
-        return c.json({ error: error.message || 'Tool execution failed' }, 500);
+        if (error instanceof ZodError) { // Should be caught by safeParse, but as a fallback
+          const errorDetails = error.errors.map(err => ({
+            path: err.path.join('.'),
+            message: err.message,
+          }));
+          return c.json({ error: 'Input validation error during processing', details: errorDetails }, 400);
+        }
+        // Log the error server-side for debugging
+        console.error(`[${this.name}] Error executing tool ${toolName}:`, error);
+        return c.json({ error: error.message || 'Tool execution failed', details: 'Internal Server Error' }, 500);
       }
     });
 
@@ -100,10 +122,13 @@ export abstract class MCPService {
         return c.json({ error: `Resource '${resourceName}' not found` }, 404);
       }
       try {
-        const result = await resource.handler(uri);
+        // Pass Hono's context `c` to the handler
+        const result = await resource.handler(uri, c);
         return c.json(result);
       } catch (error: any) {
-        return c.json({ error: error.message || 'Resource access failed' }, 500);
+        // Log the error server-side for debugging
+        console.error(`[${this.name}] Error accessing resource ${resourceName}:`, error);
+        return c.json({ error: error.message || 'Resource access failed', details: 'Internal Server Error' }, 500);
       }
     });
   }

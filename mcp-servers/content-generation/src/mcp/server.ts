@@ -1,11 +1,12 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import logger from '../utils/logger';
-import { environment } from '../utils/environment';
+import { createLogger, Logger as CoreLogger } from '@monorepo/core';
+// environment import is not needed here if port is not used directly
+// import { environment } from '../utils/environment';
 import {
   MCPTool,
   MCPResource,
-  MCPService, // Changed from MCPServer
+  MCPService,
   ServerConfig, // New import
 } from '@modelcontextprotocol/runtime';
 
@@ -30,18 +31,20 @@ const contentResourceSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
-class ContentGenerationService extends MCPService {
-  constructor(app: Hono, config: ServerConfig) {
+export class ContentGenerationService extends MCPService { // Export class
+  private readonly logger: CoreLogger;
+
+  constructor(app: Hono, config: ServerConfig, loggerInstance: CoreLogger) {
     super(app, config);
-    // Removed redundant this.name, this.version, this.description assignments
+    this.logger = loggerInstance;
 
     this.registerTools([
       new MCPTool({
         name: 'generate_content',
         description: 'Generates content based on a prompt using an AI model.',
         inputSchema: generateContentToolSchema,
-        func: async (input: any, context?: any) => { // Explicitly type input
-          logger.info('Generating content:', input.prompt);
+        func: async (input: any, context?: any) => {
+          this.logger.info('Generating content:', input.prompt);
           // Simulate AI content generation
           const contentId = 'gen-' + Math.random().toString(36).substring(2, 11);
           // In a real scenario, this would call an AI API (e.g., OpenAI, Anthropic)
@@ -61,8 +64,8 @@ class ContentGenerationService extends MCPService {
         name: 'get_content_status',
         description: 'Retrieves the status of a previously generated content request.',
         inputSchema: getContentStatusToolSchema,
-        func: async (input: any, context?: any) => { // Explicitly type input
-          logger.info('Getting content status for ID:', input.contentId);
+        func: async (input: any, context?: any) => {
+          this.logger.info('Getting content status for ID:', input.contentId);
           // Simulate fetching status from a database
           return {
             contentId: input.contentId,
@@ -77,9 +80,9 @@ class ContentGenerationService extends MCPService {
       new MCPResource({
         name: 'content',
         description: 'Represents generated content.',
-        schema: contentResourceSchema, // Added schema
-        get: async (uri: string, context?: any) => { // Explicitly type uri
-          logger.info('Fetching content resource for URI:', uri);
+        schema: contentResourceSchema,
+        get: async (uri: string, context?: any) => {
+          this.logger.info('Fetching content resource for URI:', uri);
           const contentId = uri.split('/').pop();
           if (!contentId) {
             throw new Error('Invalid content URI');
@@ -97,15 +100,17 @@ class ContentGenerationService extends MCPService {
       }),
     ]);
 
-    logger.info(`Content Generation MCP Server initialized on port ${environment.PORT}`);
+    this.logger.info(`Content Generation MCP Service initialized.`); // Changed log message
   }
 }
 
 /**
  * Create and configure the MCP server instance
  */
-export async function createMCPServer(): Promise<Hono> {
+export async function createMCPServer(loggerInstance?: CoreLogger): Promise<Hono> { // Accept optional logger
   const app = new Hono();
+  const logger = loggerInstance || createLogger({ serviceName: 'content-generation-mcp', defaultMeta: { component: 'createMCPServer' } });
+
 
   const config: ServerConfig = {
     name: 'content-generation',
@@ -113,8 +118,9 @@ export async function createMCPServer(): Promise<Hono> {
     version: '1.0.0',
   };
 
-  const contentGenerationService = new ContentGenerationService(app, config);
-  await contentGenerationService.initialize(); // Call initialize on the service instance
+  // Pass the logger to the service constructor
+  const contentGenerationService = new ContentGenerationService(app, config, logger);
+  await contentGenerationService.initialize();
 
   return app;
 }
