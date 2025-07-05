@@ -12,8 +12,7 @@ const logger = createLogger({ serviceName: 'agent-orchestration-mcp' });
 // Load environment variables
 loadEnvironment();
 
-// TODO: Add AGENT_ORCHESTRATION_MCP to DEFAULT_PORTS in @monorepo/core if this service is standard
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : (DEFAULT_PORTS as any).AGENT_ORCHESTRATION_MCP || 3020;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORTS.AGENT_ORCHESTRATION_MCP;
 
 
 async function startServer() {
@@ -25,7 +24,7 @@ async function startServer() {
     logger.info('Task Queue System initialized');
     
     // Initialize the agent manager
-    const agentManager = await initializeAgentManager();
+    const agentManager = await initializeAgentManager(logger); // Pass the service logger
     logger.info('Agent Manager initialized');
     
     // Create the Hono app instance for the MCP server

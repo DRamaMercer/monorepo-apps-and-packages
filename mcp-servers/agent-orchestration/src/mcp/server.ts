@@ -23,7 +23,8 @@ interface MCPServerDependencies {
 }
 
 // Define the concrete Agent Orchestration Service
-class AgentOrchestrationService extends MCPService {
+// Exporting for testability
+export class AgentOrchestrationService extends MCPService {
   private taskQueueSystem: TaskQueueSystem;
   private agentManager: AgentManager;
 

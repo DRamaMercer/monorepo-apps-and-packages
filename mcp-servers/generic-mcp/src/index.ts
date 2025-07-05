@@ -21,9 +21,13 @@ const exampleResourceOutputSchema = z.object({
   data: z.string().describe('Some example data.'),
 });
 
-class GenericMCPService extends MCPService {
-  constructor(app: Hono, config: ServerConfig) {
+// Export for testing
+export class GenericMCPService extends MCPService {
+  private readonly logger: ReturnType<typeof createLogger>;
+
+  constructor(app: Hono, config: ServerConfig, loggerInstance: ReturnType<typeof createLogger>) {
     super(app, config);
+    this.logger = loggerInstance;
 
     // Define tools
     const greetUserTool = new MCPTool({
@@ -47,12 +51,12 @@ class GenericMCPService extends MCPService {
   }
 
   async greetUser(input: z.infer<typeof exampleToolInputSchema>): Promise<z.infer<typeof exampleToolOutputSchema>> {
-    logger.info(`Received greet_user request for: ${input.name}`);
+    this.logger.info(`Received greet_user request for: ${input.name}`);
     return { greeting: `Hello, ${input.name} from Generic MCP Server!` };
   }
 
   async getExampleData(): Promise<z.infer<typeof exampleResourceOutputSchema>> {
-    logger.info('Received get_example_data request');
+    this.logger.info('Received get_example_data request');
     return { data: 'This is some example data from Generic MCP Server.' };
   }
 }
@@ -63,7 +67,8 @@ const serviceConfig: ServerConfig = {
   version: '1.0.0',
   description: 'Generic MCP server for demonstration and scaffolding.',
 };
-const service = new GenericMCPService(app, serviceConfig); // Pass app and config to constructor
+// Pass the module-scoped logger to the service instance
+const service = new GenericMCPService(app, serviceConfig, logger);
 
 // The MCPService now handles its own routes internally
 // app.post('/mcp', async (c) => { // This block is no longer needed as MCPService handles /mcp/tool and /mcp/resource routes

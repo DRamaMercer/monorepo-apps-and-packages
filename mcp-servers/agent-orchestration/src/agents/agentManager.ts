@@ -1,10 +1,10 @@
-import { createLogger } from '@monorepo/core';
+import { createLogger, Logger as CoreLogger } from '@monorepo/core'; // Import Logger type
 import { getOptionalEnv } from '../utils/environment';
 import OpenAI from 'openai';
-
-const logger = createLogger({ serviceName: 'agent-orchestration-mcp', defaultMeta: { component: 'agentManager' } });
 import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
+
+// Module-scoped logger is removed. Logger will be an instance property.
 
 /**
  * Agent capability types
@@ -133,10 +133,12 @@ export class AgentManager {
 
   private openaiClient: OpenAI | undefined;
   private anthropicClient: Anthropic | undefined;
+  private readonly logger: CoreLogger; // Instance logger
   // private ollamaClient: any; // Placeholder for Ollama client
 
-  constructor() {
-    logger.info('Agent Manager created');
+  constructor(logger?: CoreLogger) {
+    this.logger = logger || createLogger({ serviceName: 'agent-orchestration-mcp', defaultMeta: { component: 'agentManager' } });
+    this.logger.info('Agent Manager created');
     
     // Initialize capability index
     Object.values(AgentCapability).forEach(capability => {
@@ -158,7 +160,7 @@ export class AgentManager {
     if (openaiApiKey) {
       this.openaiClient = new OpenAI({ apiKey: openaiApiKey });
     } else {
-      logger.warn('OPENAI_API_KEY not found. OpenAI agent execution will be simulated.');
+      this.logger.warn('OPENAI_API_KEY not found. OpenAI agent execution will be simulated.');
     }
 
     // Initialize Anthropic client
@@ -166,7 +168,7 @@ export class AgentManager {
     if (anthropicApiKey) {
       this.anthropicClient = new Anthropic({ apiKey: anthropicApiKey });
     } else {
-      logger.warn('ANTHROPIC_API_KEY not found. Anthropic agent execution will be simulated.');
+      this.logger.warn('ANTHROPIC_API_KEY not found. Anthropic agent execution will be simulated.');
     }
 
     // Initialize Ollama client (placeholder)
@@ -174,7 +176,7 @@ export class AgentManager {
     // if (ollamaBaseUrl) {
     //   this.ollamaClient = new Ollama({ baseUrl: ollamaBaseUrl }); // Assuming an Ollama SDK exists
     // } else {
-    //   logger.warn('OLLAMA_BASE_URL not found. Ollama agent execution will be simulated.');
+    //   this.logger.warn('OLLAMA_BASE_URL not found. Ollama agent execution will be simulated.');
     // }
   }
 
@@ -206,7 +208,7 @@ export class AgentManager {
     this.typeIndex.get(agent.type)?.add(agentId);
     this.modelProviderIndex.get(agent.modelProvider)?.add(agentId);
     
-    logger.info(`Registered agent ${agentId} of type ${agent.type}`);
+    this.logger.info(`Registered agent ${agentId} of type ${agent.type}`);
     return agent;
   }
 
@@ -273,7 +275,7 @@ export class AgentManager {
       agent.status = AgentStatus.BUSY;
       agent.lastActive = new Date();
       
-      logger.info(`Executing agent ${request.agentId} of type ${agent.type}`);
+      this.logger.info(`Executing agent ${request.agentId} of type ${agent.type}`);
       
       // Implement actual execution logic based on the agent type and model provider
       // For this example, we'll just simulate execution
@@ -312,7 +314,7 @@ export class AgentManager {
       
       return result;
     } catch (error) {
-      logger.error(`Error executing agent ${request.agentId}:`, error);
+      this.logger.error(`Error executing agent ${request.agentId}:`, error);
       
       // Update agent status to error
       agent.status = AgentStatus.ERROR;
@@ -371,7 +373,7 @@ export class AgentManager {
         }
       };
     } catch (error) {
-      logger.error(`OpenAI execution error for agent ${agent.id}:`, error);
+      this.logger.error(`OpenAI execution error for agent ${agent.id}:`, error);
       return {
         agentId: agent.id,
         success: false,
@@ -425,7 +427,7 @@ export class AgentManager {
         }
       };
     } catch (error) {
-      logger.error(`Anthropic execution error for agent ${agent.id}:`, error);
+      this.logger.error(`Anthropic execution error for agent ${agent.id}:`, error);
       return {
         agentId: agent.id,
         success: false,
@@ -486,7 +488,7 @@ export class AgentManager {
         }
       };
     } catch (error) {
-      logger.error(`Ollama execution error for agent ${agent.id}:`, error);
+      this.logger.error(`Ollama execution error for agent ${agent.id}:`, error);
       return {
         agentId: agent.id,
         success: false,
@@ -502,7 +504,7 @@ export class AgentManager {
     agent: Agent,
     request: AgentExecutionRequest
   ): Promise<AgentExecutionResult> {
-    logger.warn(`Custom model execution for agent ${agent.id} is being handled generically.`);
+    this.logger.warn(`Custom model execution for agent ${agent.id} is being handled generically.`);
     // This could be extended to handle various custom API endpoints or local models
     // For now, it acts as a placeholder for future custom integrations.
     // You might integrate with a dynamic loader or a configuration-driven API client here.
@@ -537,7 +539,7 @@ export class AgentManager {
     agent.status = status;
     agent.lastActive = new Date();
     
-    logger.info(`Updated agent ${agentId} status to ${status}`);
+    this.logger.info(`Updated agent ${agentId} status to ${status}`);
     return true;
   }
 
@@ -562,7 +564,7 @@ export class AgentManager {
     // Remove from main map
     this.agents.delete(agentId);
     
-    logger.info(`Removed agent ${agentId}`);
+    this.logger.info(`Removed agent ${agentId}`);
     return true;
   }
 
@@ -610,9 +612,10 @@ let agentManager: AgentManager | null = null;
 /**
  * Initialize the agent manager
  */
-export async function initializeAgentManager(): Promise<AgentManager> {
+export async function initializeAgentManager(logger?: CoreLogger): Promise<AgentManager> {
   if (!agentManager) {
-    agentManager = new AgentManager();
+    // Pass the provided logger (or undefined if not provided) to the constructor
+    agentManager = new AgentManager(logger);
     
     // Register default agents based on configuration
     const registerDefaultAgents = getOptionalEnv('REGISTER_DEFAULT_AGENTS', 'true') === 'true';
@@ -677,7 +680,10 @@ export async function initializeAgentManager(): Promise<AgentManager> {
         modelName: 'llama3'
       });
       
-      logger.info('Registered default agents');
+      // agentManager now has its own logger instance (this.logger)
+      // If we want initializeAgentManager to log, it would need its own logger,
+      // or use the one from the created agentManager instance.
+      agentManager.logger.info('Registered default agents'); // Use the instance's logger
     }
   }
   

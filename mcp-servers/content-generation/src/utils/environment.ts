@@ -6,9 +6,11 @@ const logger = createLogger({ serviceName: 'content-generation-mcp', defaultMeta
 
 dotenv.config();
 
+import { DEFAULT_PORTS } from '@monorepo/core';
+
 const environmentSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.coerce.number().default(3000),
+  PORT: z.coerce.number().default(DEFAULT_PORTS.CONTENT_GENERATION_MCP),
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string(),
   // Add other environment variables specific to content generation

@@ -15,8 +15,8 @@ async function startContentGenerationServer() {
   try {
     logger.info('Starting Content Generation MCP Server...');
 
-    // createMCPServer now returns the Hono app directly
-    const app = await createMCPServer();
+    // Pass the main service logger to createMCPServer
+    const app = await createMCPServer(logger);
 
     // Start the server
     serve({
